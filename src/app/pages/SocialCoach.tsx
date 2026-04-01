@@ -1,5 +1,6 @@
 // src/app/pages/SocialCoach.tsx
 import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import ScenarioDropdown from "../components/social-coach/ScenarioDropdown";
 import MessageInput from "../components/social-coach/MessageInput";
 import ReplyCard from "../components/social-coach/ReplyCard";
@@ -8,6 +9,15 @@ import { getMatchedScenario } from "../data/scenarios";
 import type { ReplyOption } from "../data/scenarios";
 
 type Stage = "pick" | "type" | "replies" | "feedback";
+
+const STAGES: Stage[] = ["pick", "type", "replies", "feedback"];
+
+const STAGE_META = {
+  pick:     { label: "Pick a situation", emoji: "🎯", color: "#7c3aed", bg: "#ede9fe" },
+  type:     { label: "What would you say?", emoji: "✍️", color: "#ec4899", bg: "#fce7f3" },
+  replies:  { label: "Pick a reply", emoji: "💬", color: "#059669", bg: "#d1fae5" },
+  feedback: { label: "Great job!", emoji: "🌟", color: "#d97706", bg: "#fef9c3" },
+};
 
 export function SocialCoach() {
   const [scenarioId, setScenarioId] = useState("");
@@ -38,119 +48,231 @@ export function SocialCoach() {
     setStage("pick");
   };
 
-  const stepNumber = (n: number, color: string) => (
-    <span
-      className={`${color} text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm shrink-0`}
-    >
-      {n}
-    </span>
-  );
+  const currentStageIndex = STAGES.indexOf(stage);
+  const meta = STAGE_META[stage];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-yellow-50 flex flex-col items-center px-4 py-8">
+    <div className="min-h-screen px-4 py-8 flex flex-col items-center">
 
-      {/* Header */}
-      <div className="text-center mb-8">
-        <div className="text-5xl mb-3">🧠💬</div>
-        <h1 className="text-3xl font-extrabold text-purple-800 tracking-tight">
+      {/* Hero header */}
+      <motion.div
+        className="text-center mb-8 max-w-sm"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <motion.div
+          className="inline-flex items-center justify-center w-20 h-20 rounded-3xl mb-4 text-4xl shadow-lg"
+          style={{ background: "linear-gradient(135deg, #ede9fe, #fce7f3)" }}
+          animate={{ rotate: [0, -5, 5, 0] }}
+          transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+        >
+          💬
+        </motion.div>
+        <h1
+          className="text-3xl font-black tracking-tight mb-2"
+          style={{ color: "#4c1d95", fontFamily: "'Nunito', sans-serif" }}
+        >
           Social Coach
         </h1>
-        <p className="text-purple-500 mt-2 text-sm max-w-xs mx-auto leading-relaxed">
-          Practice tricky social situations in a safe space. Pick a scenario and I'll help you find the right words!
+        <p className="text-sm font-semibold" style={{ color: "#7c6f9e" }}>
+          Practise tricky situations in a safe space 💜
         </p>
+      </motion.div>
+
+      {/* Step progress bar */}
+      <div className="flex items-center gap-2 mb-7 w-full max-w-md">
+        {STAGES.map((s, i) => {
+          const m = STAGE_META[s];
+          const done = currentStageIndex > i;
+          const active = stage === s;
+          return (
+            <div key={s} className="flex-1 flex flex-col items-center gap-1">
+              <motion.div
+                className="w-full h-2.5 rounded-full transition-all duration-400"
+                style={{
+                  background: done ? m.color : active ? m.color : "rgba(196,181,253,0.3)",
+                  opacity: active ? 1 : done ? 0.7 : 0.5,
+                }}
+                layout
+              />
+              <span
+                className="text-[10px] font-bold hidden sm:block"
+                style={{ color: active ? m.color : "#c4b5fd" }}
+              >
+                {m.emoji}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Progress dots */}
-      <div className="flex items-center gap-2 mb-6">
-        {(["pick", "type", "replies", "feedback"] as Stage[]).map((s, i) => (
-          <div
-            key={s}
-            className={`rounded-full transition-all duration-300 ${
-              stage === s
-                ? "w-6 h-3 bg-purple-500"
-                : (["pick", "type", "replies", "feedback"] as Stage[]).indexOf(stage) > i
-                ? "w-3 h-3 bg-purple-400"
-                : "w-3 h-3 bg-purple-200"
-            }`}
-          />
-        ))}
-      </div>
+      {/* Stage label pill */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={stage}
+          className="flex items-center gap-2 px-4 py-1.5 rounded-full font-bold text-sm mb-5"
+          style={{ background: meta.bg, color: meta.color }}
+          initial={{ opacity: 0, scale: 0.8, y: 6 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.8, y: -6 }}
+          transition={{ type: "spring", stiffness: 300 }}
+        >
+          <span>{meta.emoji}</span>
+          {meta.label}
+        </motion.div>
+      </AnimatePresence>
 
       {/* Main card */}
-      <div className="w-full max-w-xl bg-white rounded-3xl shadow-xl p-6 flex flex-col gap-6">
-
-        {/* Step 1: Scenario picker — always visible */}
+      <motion.div
+        className="w-full max-w-xl rounded-3xl p-6 flex flex-col gap-5"
+        style={{
+          background: "rgba(255,255,255,0.9)",
+          backdropFilter: "blur(12px)",
+          border: "2px solid rgba(196,181,253,0.3)",
+          boxShadow: "0 4px 32px rgba(124,58,237,0.1), 0 1px 8px rgba(0,0,0,0.04)",
+        }}
+        layout
+      >
+        {/* Step 1 — Scenario */}
         <div className="flex items-start gap-3">
-          {stepNumber(1, "bg-purple-500")}
-          <ScenarioDropdown selected={scenarioId} onChange={handleScenarioChange} />
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-sm shrink-0 shadow"
+            style={{ background: "linear-gradient(135deg, #7c3aed, #a855f7)" }}
+          >
+            1
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-bold mb-2" style={{ color: "#7c3aed" }}>CHOOSE A SITUATION</p>
+            <ScenarioDropdown selected={scenarioId} onChange={handleScenarioChange} />
+          </div>
         </div>
 
         {/* Divider */}
-        {scenarioId && <div className="border-t-2 border-dashed border-purple-100" />}
-
-        {/* Step 2: Message input */}
-        {scenarioId && (stage === "type" || stage === "replies" || stage === "feedback") && (
-          <div className="flex items-start gap-3">
-            {stepNumber(2, "bg-pink-500")}
-            <MessageInput
-              onSubmit={handleMessageSubmit}
-              disabled={stage === "replies" || stage === "feedback"}
-            />
+        {scenarioId && (
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, transparent, #c4b5fd, transparent)" }} />
           </div>
         )}
+
+        {/* Step 2 — Message input */}
+        <AnimatePresence>
+          {scenarioId && (stage === "type" || stage === "replies" || stage === "feedback") && (
+            <motion.div
+              className="flex items-start gap-3"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring" }}
+            >
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-sm shrink-0 shadow"
+                style={{ background: "linear-gradient(135deg, #ec4899, #f472b6)" }}
+              >
+                2
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-bold mb-2" style={{ color: "#ec4899" }}>WHAT WOULD YOU SAY?</p>
+                <MessageInput
+                  onSubmit={handleMessageSubmit}
+                  disabled={stage === "replies" || stage === "feedback"}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Divider */}
         {(stage === "replies" || stage === "feedback") && (
-          <div className="border-t-2 border-dashed border-purple-100" />
-        )}
-
-        {/* Step 3: Reply cards */}
-        {(stage === "replies" || stage === "feedback") && scenario && (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              {stepNumber(3, "bg-green-500")}
-              <p className="text-base font-bold text-gray-700">
-                Pick the reply that feels right:
-              </p>
-            </div>
-            <p className="text-sm text-gray-400 pl-11">
-              All three are good — they just have different styles!
-            </p>
-            {scenario.replies.map((reply: ReplyOption) => (
-              <ReplyCard
-                key={reply.id}
-                reply={reply}
-                onSelect={handleReplySelect}
-                selected={selectedReply?.id === reply.id}
-              />
-            ))}
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, transparent, #86efac, transparent)" }} />
           </div>
         )}
 
-        {/* Step 4: Feedback */}
-        {stage === "feedback" && selectedReply && (
-          <>
-            <div className="border-t-2 border-dashed border-purple-100" />
-            <FeedbackBanner
-              emoji={selectedReply.feedbackEmoji}
-              message={selectedReply.feedback}
-              onTryAgain={handleTryAgain}
-            />
-          </>
-        )}
+        {/* Step 3 — Reply cards */}
+        <AnimatePresence>
+          {(stage === "replies" || stage === "feedback") && scenario && (
+            <motion.div
+              className="flex flex-col gap-3"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring" }}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-sm shrink-0 shadow"
+                  style={{ background: "linear-gradient(135deg, #059669, #34d399)" }}
+                >
+                  3
+                </div>
+                <div>
+                  <p className="text-xs font-bold" style={{ color: "#059669" }}>PICK A REPLY STYLE</p>
+                  <p className="text-xs font-semibold" style={{ color: "#9ca3af" }}>All good — just different vibes!</p>
+                </div>
+              </div>
+              {scenario.replies.map((reply: ReplyOption, i: number) => (
+                <motion.div
+                  key={reply.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.07 }}
+                >
+                  <ReplyCard
+                    reply={reply}
+                    onSelect={handleReplySelect}
+                    selected={selectedReply?.id === reply.id}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Step 4 — Feedback */}
+        <AnimatePresence>
+          {stage === "feedback" && selectedReply && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", stiffness: 250 }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, transparent, #fde68a, transparent)" }} />
+              </div>
+              <FeedbackBanner
+                emoji={selectedReply.feedbackEmoji}
+                message={selectedReply.feedback}
+                onTryAgain={handleTryAgain}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Empty state */}
         {stage === "pick" && (
-          <div className="text-center text-purple-300 text-sm py-2">
-            ☝️ Start by picking a situation above!
-          </div>
+          <motion.div
+            className="text-center py-4 rounded-2xl"
+            style={{ background: "#faf8ff" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <p className="text-2xl mb-1">👆</p>
+            <p className="text-sm font-bold" style={{ color: "#c4b5fd" }}>
+              Start by picking a situation above!
+            </p>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
 
-      {/* Footer */}
-      <p className="mt-6 text-xs text-purple-400 text-center max-w-xs leading-relaxed">
-        This is a safe space to practise. There are no wrong answers here. 💜
-      </p>
+      {/* Footer note */}
+      <motion.p
+        className="mt-6 text-xs font-bold text-center max-w-xs"
+        style={{ color: "#c4b5fd" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        This is a safe space to practise 💜 No wrong answers here!
+      </motion.p>
     </div>
   );
 }

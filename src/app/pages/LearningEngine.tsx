@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, BookOpen, ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router";
 import { InterestSelector } from "../components/learning/InterestSelector";
 import { LessonCard } from "../components/learning/LessonCard";
@@ -50,39 +50,74 @@ export default function LearningEnginePage() {
     setLessonIndex(0);
   }
 
+  const completionPct = lessons.length > 0 ? Math.round((completedLessons.size / lessons.length) * 100) : 0;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen px-4 py-6">
+
       {/* Top bar */}
-      <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100 px-4 py-3 flex items-center gap-3">
-        <button
+      <div
+        className="sticky top-0 z-10 px-4 py-3 flex items-center gap-3 mb-4 rounded-2xl mx-auto max-w-lg"
+        style={{
+          background: "rgba(255,255,255,0.88)",
+          backdropFilter: "blur(16px)",
+          border: "1.5px solid rgba(99,102,241,0.12)",
+          boxShadow: "0 2px 16px rgba(99,102,241,0.08)",
+        }}
+      >
+        <motion.button
           onClick={() => navigate(-1)}
-          className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors text-gray-500"
+          className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg"
+          style={{ background: "#ede9fe", color: "#7c3aed" }}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
         >
-          <ArrowLeft size={18} />
-        </button>
-        <div className="flex items-center gap-2">
-          <BookOpen size={18} className="text-indigo-500" />
-          <h1 className="text-base font-bold text-gray-800">Learning Engine</h1>
+          ←
+        </motion.button>
+        <div className="flex items-center gap-2 flex-1">
+          <span className="text-xl">📚</span>
+          <h1 className="text-base font-black" style={{ color: "#1e1532" }}>Learning Engine</h1>
         </div>
         {selectedInterest && (
-          <button
+          <motion.button
             onClick={clearInterest}
-            className="ml-auto text-xs text-indigo-500 font-semibold hover:text-indigo-700 transition-colors"
+            className="text-xs font-bold px-3 py-1.5 rounded-full"
+            style={{ background: "#ede9fe", color: "#7c3aed" }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
           >
-            Change topic
-          </button>
+            Change topic ✏️
+          </motion.button>
         )}
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-6">
+      <div className="max-w-lg mx-auto">
         <AnimatePresence mode="wait">
           {!selectedInterest ? (
             <motion.div
               key="selector"
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.35 }}
             >
+              {/* Header */}
+              <div className="text-center mb-6">
+                <motion.div
+                  className="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-3xl mb-3 shadow-md"
+                  style={{ background: "linear-gradient(135deg, #ede9fe, #dbeafe)" }}
+                  animate={{ rotate: [0, -6, 6, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, repeatDelay: 1 }}
+                >
+                  🤔
+                </motion.div>
+                <h2 className="text-2xl font-black mb-1" style={{ color: "#1e1532" }}>
+                  What do you want to explore?
+                </h2>
+                <p className="text-sm font-semibold" style={{ color: "#7c6f9e" }}>
+                  Pick a topic you love and we'll make it fun 🌈
+                </p>
+              </div>
               <InterestSelector
                 selected={selectedInterest}
                 onSelect={handleInterestSelect}
@@ -91,44 +126,62 @@ export default function LearningEnginePage() {
           ) : (
             <motion.div
               key="lesson"
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.35 }}
             >
-              {/* Breadcrumb */}
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">{interest?.emoji}</span>
-                <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">
-                    {interest?.label}
-                  </p>
-                  <p className="text-sm text-gray-600">
+              {/* Topic + progress header */}
+              <div
+                className="rounded-2xl p-4 mb-4 flex items-center gap-3"
+                style={{ background: "rgba(255,255,255,0.85)", border: "1.5px solid rgba(196,181,253,0.25)", boxShadow: "0 2px 12px rgba(124,58,237,0.07)" }}
+              >
+                <span className="text-3xl">{interest?.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-sm" style={{ color: "#1e1532" }}>{interest?.label}</p>
+                  <p className="text-xs font-semibold" style={{ color: "#9ca3af" }}>
                     Lesson {lessonIndex + 1} of {lessons.length}
                   </p>
+                  {/* Progress bar */}
+                  <div className="mt-1.5 h-2 rounded-full overflow-hidden" style={{ background: "#e5e7eb" }}>
+                    <motion.div
+                      className="h-full rounded-full"
+                      style={{ background: interest?.color ?? "#6366f1" }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${completionPct}%` }}
+                      transition={{ duration: 0.5 }}
+                    />
+                  </div>
                 </div>
+                <span
+                  className="text-xs font-black px-2 py-1 rounded-full"
+                  style={{ background: "#d1fae5", color: "#059669" }}
+                >
+                  {completionPct}%
+                </span>
               </div>
 
               {/* Lesson dots */}
-              <div className="flex gap-2 mb-5">
+              <div className="flex gap-1.5 mb-5">
                 {lessons.map((l, i) => (
-                  <button
+                  <motion.button
                     key={l.id}
                     onClick={() => setLessonIndex(i)}
-                    className="flex-1 h-2 rounded-full transition-all"
+                    className="flex-1 h-3 rounded-full transition-all"
                     style={{
-                      backgroundColor:
-                        completedLessons.has(l.id)
-                          ? "#10b981"
-                          : i === lessonIndex
-                          ? interest?.color ?? "#6366f1"
-                          : "#e5e7eb",
+                      backgroundColor: completedLessons.has(l.id)
+                        ? "#10b981"
+                        : i === lessonIndex
+                        ? interest?.color ?? "#6366f1"
+                        : "#e5e7eb",
                     }}
+                    whileHover={{ scaleY: 1.4 }}
                     title={l.title}
                   />
                 ))}
               </div>
 
-              {/* Lesson card — keyed by lesson id so all internal state resets on lesson change */}
+              {/* Lesson card */}
               {currentLesson && (
                 <LessonCard
                   key={currentLesson.id}
@@ -140,46 +193,61 @@ export default function LearningEnginePage() {
               )}
 
               {/* Navigation */}
-              <div className="flex justify-between items-center mt-4">
-                <button
+              <div className="flex justify-between items-center mt-4 gap-3">
+                <motion.button
                   onClick={() => setLessonIndex((i) => Math.max(0, i - 1))}
                   disabled={lessonIndex === 0}
-                  className="flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 text-sm text-gray-500 hover:bg-gray-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-2xl font-bold text-sm"
+                  style={{
+                    background: lessonIndex === 0 ? "#f3f4f6" : "#ede9fe",
+                    color: lessonIndex === 0 ? "#d1d5db" : "#7c3aed",
+                  }}
+                  whileHover={lessonIndex !== 0 ? { scale: 1.04 } : {}}
+                  whileTap={lessonIndex !== 0 ? { scale: 0.96 } : {}}
                 >
-                  <ChevronLeft size={14} /> Previous
-                </button>
-                <button
-                  onClick={() =>
-                    setLessonIndex((i) => Math.min(lessons.length - 1, i + 1))
-                  }
+                  <ChevronLeft size={16} /> Previous
+                </motion.button>
+                <motion.button
+                  onClick={() => setLessonIndex((i) => Math.min(lessons.length - 1, i + 1))}
                   disabled={lessonIndex === lessons.length - 1}
-                  className="flex items-center gap-1 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-2xl font-bold text-sm text-white shadow-md"
+                  style={{
+                    background: lessonIndex === lessons.length - 1
+                      ? "#d1d5db"
+                      : `linear-gradient(135deg, ${interest?.color ?? "#6366f1"}, ${interest?.color ?? "#6366f1"}cc)`,
+                  }}
+                  whileHover={lessonIndex !== lessons.length - 1 ? { scale: 1.04 } : {}}
+                  whileTap={lessonIndex !== lessons.length - 1 ? { scale: 0.96 } : {}}
                 >
-                  Next <ChevronRight size={14} />
-                </button>
+                  Next <ChevronRight size={16} />
+                </motion.button>
               </div>
 
-              {/* All done state */}
-              {completedLessons.size === lessons.length && (
+              {/* All done */}
+              {completedLessons.size === lessons.length && lessons.length > 0 && (
                 <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-5 rounded-3xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 p-5 text-center"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: "spring", stiffness: 250 }}
+                  className="mt-5 rounded-3xl p-5 text-center"
+                  style={{ background: "linear-gradient(135deg, #d1fae5, #a7f3d0)", border: "2px solid #6ee7b7" }}
                 >
-                  <p className="text-2xl mb-1">🏆</p>
-                  <h4 className="font-bold text-gray-800 mb-1">
-                    You've read all lessons!
+                  <p className="text-3xl mb-2">🏆</p>
+                  <h4 className="font-black text-lg mb-1" style={{ color: "#065f46" }}>
+                    All lessons done! Amazing!
                   </h4>
-                  <p className="text-sm text-gray-500 mb-3">
-                    Amazing work on {interest?.label}. Pick a new topic to keep
-                    learning!
+                  <p className="text-sm font-semibold mb-3" style={{ color: "#059669" }}>
+                    You crushed {interest?.label}! Pick a new topic to keep going.
                   </p>
-                  <button
+                  <motion.button
                     onClick={clearInterest}
-                    className="px-5 py-2 rounded-full bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-colors"
+                    className="px-6 py-2.5 rounded-full font-bold text-white text-sm shadow-md"
+                    style={{ background: "linear-gradient(135deg, #059669, #10b981)" }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.97 }}
                   >
-                    Choose another topic
-                  </button>
+                    Choose another topic 🚀
+                  </motion.button>
                 </motion.div>
               )}
             </motion.div>
